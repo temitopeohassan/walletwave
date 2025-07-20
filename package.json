@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "node dist/mcp-server.js",
-    "dev": "ts-node-dev --respawn src/index.ts",
+    "dev": "ts-node-dev --respawn api/index.ts",
     "build": "tsc"
   },
   "repository": {
