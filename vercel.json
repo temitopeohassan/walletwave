@@ -1,16 +1,19 @@
 {
-  "version": 2,
-  "name": "walletwave-api",
+  "functions": {
+    "api/index.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "builds": [
     {
-      "src": "api/index.ts",
+      "src": "src/api/index.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "api/index.ts"
+      "src": "/api/(.*)",
+      "dest": "api/index.js"
     }
   ]
 }

@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "description": "WalletWave is a Wallet as a Service product that provides fintechs with secure, scalable wallet infrastructure to power stablecoin transactions. This enables businesses to offer their customers dedicated wallet addresses for seamless transactions. It features an API for creating abstracted wallet addresses for use in crypto applications",
   "main": "index.ts",
-  "scripts": {
-    "start": "node dist/mcp-server.js",
-    "dev": "ts-node-dev --respawn api/index.ts",
-    "build": "tsc"
-  },
+"scripts": {
+  "start": "node dist/mcp-server.js",
+  "dev": "ts-node-dev --respawn src/api/index.ts",
+"build": "tsc && shx mkdir -p api && shx cp dist/api/index.js api/index.js"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/temitopeohassan/walletwave.git"
