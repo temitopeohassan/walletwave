@@ -6,7 +6,7 @@
 "scripts": {
   "start": "node dist/api/index.js",
   "dev": "ts-node-dev --respawn src/api/index.ts",  
-  "build": "tsc && shx mkdir -p api/config && shx cp dist/api/index.js api/index.js && shx cp dist/config/*.js api/config/"
+  "build": "tsc && shx mkdir -p api && shx cp dist/api/index.js api/index.js && shx cp -r dist/config api/ && shx cp -r dist/routes api/"
 },
   "repository": {
     "type": "git",
