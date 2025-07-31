@@ -14,6 +14,7 @@ const redis_1 = require("../config/redis");
 const walletHandlers_1 = require("../routes/handlers/walletHandlers");
 const transactionHandlers_1 = require("../routes/handlers/transactionHandlers");
 const addressHandlers_1 = require("../routes/handlers/addressHandlers");
+const tokenHandlers_1 = require("../routes/handlers/tokenHandlers");
 // Load environment variables
 dotenv_1.default.config();
 const app = (0, express_1.default)();
@@ -35,6 +36,11 @@ app.post('/tools/initiate_withdrawal', transactionHandlers_1.initiateWithdrawal)
 app.post('/tools/get_transaction_details', transactionHandlers_1.getTransactionDetails);
 app.post('/tools/list_dedicated_addresses', addressHandlers_1.listDedicatedAddresses);
 app.post('/tools/update_address_settings', addressHandlers_1.updateAddressSettings);
+// Token management routes
+app.get('/tokens/:network', tokenHandlers_1.getSupportedTokens);
+app.get('/tokens/:network/:symbol', tokenHandlers_1.getTokenInfo);
+app.get('/network/:network/status', tokenHandlers_1.getNetworkStatus);
+app.post('/estimate-gas', tokenHandlers_1.estimateGas);
 // Local dev server
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 3000;

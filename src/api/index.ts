@@ -25,6 +25,13 @@ import {
   updateAddressSettings,
 } from '../routes/handlers/addressHandlers';
 
+import {
+  getSupportedTokens,
+  getTokenInfo,
+  getNetworkStatus,
+  estimateGas,
+} from '../routes/handlers/tokenHandlers';
+
 // Load environment variables
 dotenv.config();
 
@@ -40,7 +47,6 @@ app.get('/', (req, res) => {
 connectMongoDB();
 connectRedis();
 
-
 // New tool handler routes
 app.post('/tools/create_master_wallet', createMasterWallet);
 app.post('/tools/create_dedicated_address', createDedicatedAddress);
@@ -51,6 +57,12 @@ app.post('/tools/initiate_withdrawal', initiateWithdrawal);
 app.post('/tools/get_transaction_details', getTransactionDetails);
 app.post('/tools/list_dedicated_addresses', listDedicatedAddresses);
 app.post('/tools/update_address_settings', updateAddressSettings);
+
+// Token management routes
+app.get('/tokens/:network', getSupportedTokens);
+app.get('/tokens/:network/:symbol', getTokenInfo);
+app.get('/network/:network/status', getNetworkStatus);
+app.post('/estimate-gas', estimateGas);
 
 // Local dev server
 if (process.env.NODE_ENV !== 'production') {

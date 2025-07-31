@@ -1,26 +1,23 @@
 import { Request, Response } from 'express';
-import { ethers } from 'ethers';
+import { tokenService } from '../../services/tokenService';
 
 export const getAddressBalance = async (req: Request, res: Response) => {
   try {
-    const { address } = req.body;
-    const provider = new ethers.JsonRpcProvider(process.env.BASE_RPC_URL);
+    const { address, network = 'base' } = req.body;
+    
+    // Validate network
+    const supportedNetworks = ['base', 'base-sepolia', 'ethereum-sepolia'];
+    if (!supportedNetworks.includes(network)) {
+      return res.status(400).json({ error: 'Unsupported network' });
+    }
 
-    const abi = ["function balanceOf(address) view returns (uint256)"];
-    const usdc = new ethers.Contract("0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913", abi, provider);
-    const usdt = new ethers.Contract("0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2", abi, provider);
-
-    const [usdcBal, usdtBal] = await Promise.all([
-      usdc.balanceOf(address),
-      usdt.balanceOf(address),
-    ]);
+    // Get all token balances for the network
+    const balances = await tokenService.getAllTokenBalances(address, network);
 
     res.json({
       address,
-      balances: {
-        usdc: usdcBal.toString(),
-        usdt: usdtBal.toString(),
-      },
+      network,
+      balances,
     });
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to fetch balance', message: err.message });
@@ -31,6 +28,7 @@ export const listDedicatedAddresses = async (req: Request, res: Response) => {
   const {
     customer_id,
     master_wallet_id,
+    network,
     is_active,
     limit = 50,
     offset = 0,
@@ -39,6 +37,7 @@ export const listDedicatedAddresses = async (req: Request, res: Response) => {
   res.json({
     customer_id,
     master_wallet_id,
+    network,
     is_active,
     limit,
     offset,
@@ -47,9 +46,10 @@ export const listDedicatedAddresses = async (req: Request, res: Response) => {
 };
 
 export const updateAddressSettings = async (req: Request, res: Response) => {
-  const { address, ...updates } = req.body;
+  const { address, network = 'base', ...updates } = req.body;
   res.json({
     address,
+    network,
     updated: updates,
   });
 };
