@@ -73,4 +73,5 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Serverless handler export for Vercel
-export const handler = serverless(app);
+module.exports = app;
+

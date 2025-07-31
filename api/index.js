@@ -4,11 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.handler = void 0;
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const body_parser_1 = __importDefault(require("body-parser"));
-const serverless_http_1 = __importDefault(require("serverless-http"));
 const mongodb_1 = require("../config/mongodb");
 const redis_1 = require("../config/redis");
 const walletHandlers_1 = require("../routes/handlers/walletHandlers");
@@ -49,4 +47,4 @@ if (process.env.NODE_ENV !== 'production') {
     });
 }
 // Serverless handler export for Vercel
-exports.handler = (0, serverless_http_1.default)(app);
+module.exports = app;
