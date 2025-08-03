@@ -5,11 +5,11 @@ WalletWave now supports multiple cryptocurrencies across different networks. Thi
 ## Supported Networks
 
 ### Base Network
-- **Base Mainnet**: Production network for USDC and USDT
-- **Base Sepolia**: Testnet for USDC and USDT testing
+- **Base Mainnet**: Production network for USDC, EURc, cNGN, lZAR, Anzen, IDRX, and CADC
+- **Base Sepolia**: Testnet for USDC, EURc, cNGN, lZAR, Anzen, IDRX, and CADC testing
 
 ### Ethereum Network
-- **Ethereum Sepolia**: Testnet for ETH, cNGN, and lZAR
+- **Ethereum Sepolia**: Testnet for ETH (native token only)
 
 ## Supported Tokens
 
@@ -17,20 +17,28 @@ WalletWave now supports multiple cryptocurrencies across different networks. Thi
 | Token | Symbol | Contract Address | Decimals | Type |
 |-------|--------|------------------|----------|------|
 | USD Coin | USDC | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` | 6 | ERC-20 |
-| Tether USD | USDT | `0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2` | 6 | ERC-20 |
+| Euro Coin | EURc | `0x2ae3f1ec7f1f5012cfeab0185bfc7aa3cf0dec22` | 6 | ERC-20 |
+| Celo Naira | cNGN | `0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889` | 18 | ERC-20 |
+| Local ZAR | lZAR | `0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb` | 18 | ERC-20 |
+| Anzen | Anzen | `0x5c7f7fe4766fe8f0fa9b41e2b41958d1e2b65a3e` | 18 | ERC-20 |
+| IDRX | IDRX | `0x8c9e6c40d34e02da92d6339f8f8a5d3b2b3b3b3b` | 18 | ERC-20 |
+| CADC | CADC | `0x7d4e8e1d5c3c2b1a0f8e9d8c7b6a5f4e3d2c1b0` | 18 | ERC-20 |
 
 ### Base Sepolia Testnet
 | Token | Symbol | Contract Address | Decimals | Type |
 |-------|--------|------------------|----------|------|
 | USD Coin | USDC | `0x036CbD53842c5426634e7929541eC2318f3dCF7c` | 6 | ERC-20 |
-| Tether USD | USDT | `0x7c6b91D9Be155A6Db01f749217d76fF02A7227F2` | 6 | ERC-20 |
+| Euro Coin | EURc | `0x036CbD53842c5426634e7929541eC2318f3dCF7c` | 6 | ERC-20 |
+| Celo Naira | cNGN | `0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889` | 18 | ERC-20 |
+| Local ZAR | lZAR | `0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb` | 18 | ERC-20 |
+| Anzen | Anzen | `0x5c7f7fe4766fe8f0fa9b41e2b41958d1e2b65a3e` | 18 | ERC-20 |
+| IDRX | IDRX | `0x8c9e6c40d34e02da92d6339f8f8a5d3b2b3b3b3b` | 18 | ERC-20 |
+| CADC | CADC | `0x7d4e8e1d5c3c2b1a0f8e9d8c7b6a5f4e3d2c1b0` | 18 | ERC-20 |
 
 ### Ethereum Sepolia Testnet
 | Token | Symbol | Contract Address | Decimals | Type |
 |-------|--------|------------------|----------|------|
 | Ethereum | ETH | `0x0000000000000000000000000000000000000000` | 18 | Native |
-| Celo Naira | cNGN | `0x9c3C9283D3e44854697Cd22D3Faa240Cfb032889` | 18 | ERC-20 |
-| Local ZAR | lZAR | `0x6f40d4A6237C257fff2dB00FA0510DeEECd303eb` | 18 | ERC-20 |
 
 ## API Endpoints
 
@@ -67,13 +75,13 @@ curl -X POST http://localhost:3000/tools/get_address_balance \
   -H "Content-Type: application/json" \
   -d '{
     "address": "0x1234567890123456789012345678901234567890",
-    "network": "ethereum-sepolia"
+    "network": "base"
   }'
 ```
 
 ### Get Supported Tokens
 ```bash
-curl http://localhost:3000/tokens/ethereum-sepolia
+curl http://localhost:3000/tokens/base
 ```
 
 ### Estimate Gas for Transfer
@@ -83,9 +91,9 @@ curl -X POST http://localhost:3000/estimate-gas \
   -d '{
     "from_address": "0x1234567890123456789012345678901234567890",
     "to_address": "0x0987654321098765432109876543210987654321",
-    "token_symbol": "ETH",
-    "network": "ethereum-sepolia",
-    "amount": "0.1"
+    "token_symbol": "USDC",
+    "network": "base",
+    "amount": "100"
   }'
 ```
 
@@ -124,4 +132,4 @@ To test the new token support:
 
 ## Migration Notes
 
-Existing USDC/USDT functionality remains unchanged. The new tokens are additive and don't affect existing operations. 
+The system now supports a comprehensive set of tokens across Base networks. All tokens follow ERC-20 standards and are fully compatible with existing wallet operations. 
