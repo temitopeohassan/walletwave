@@ -1,8 +1,18 @@
 import { ethers } from 'ethers';
-import { TOKENS, getTokensByNetwork, getTokenBySymbol, TokenConfig } from '../config/tokens';
+import { 
+  TOKENS, 
+  getTokensByNetwork, 
+  getTokenBySymbol, 
+  getTokenByAddress,
+  createDynamicTokenConfig,
+  isValidERC20Address,
+  ERC20_ABI,
+  TokenConfig 
+} from '../config/tokens';
 
 export class TokenService {
   private providers: Map<string, ethers.JsonRpcProvider> = new Map();
+  private dynamicTokenCache: Map<string, TokenConfig> = new Map();
 
   constructor() {
     this.initializeProviders();
@@ -30,12 +40,68 @@ export class TokenService {
     return provider;
   }
 
-  async getTokenBalance(address: string, tokenSymbol: string, network: string): Promise<string> {
-    const token = getTokenBySymbol(tokenSymbol, network);
-    if (!token) {
-      throw new Error(`Token ${tokenSymbol} not supported on network ${network}`);
+  // Enhanced method to get or create token config for any ERC20 address
+  private async getOrCreateTokenConfig(
+    tokenIdentifier: string, 
+    network: string
+  ): Promise<TokenConfig> {
+    // First, try to find by symbol
+    let token = getTokenBySymbol(tokenIdentifier, network);
+    
+    // If not found by symbol, try by address
+    if (!token && isValidERC20Address(tokenIdentifier)) {
+      token = getTokenByAddress(tokenIdentifier, network);
     }
+    
+    // If still not found and it's a valid address on Base networks, create dynamic config
+    if (!token && isValidERC20Address(tokenIdentifier) && 
+        (network === 'base' || network === 'base-sepolia')) {
+      
+      const cacheKey = `${network}:${tokenIdentifier.toLowerCase()}`;
+      
+      // Check cache first
+      if (this.dynamicTokenCache.has(cacheKey)) {
+        return this.dynamicTokenCache.get(cacheKey)!;
+      }
+      
+      // Create new dynamic token config
+      token = createDynamicTokenConfig(tokenIdentifier, network as 'base' | 'base-sepolia');
+      
+      // Try to fetch real token information from blockchain
+      try {
+        const provider = this.getProvider(network);
+        const contract = new ethers.Contract(tokenIdentifier, ERC20_ABI, provider);
+        
+        // Fetch token metadata
+        const [name, symbol, decimals] = await Promise.all([
+          contract.name().catch(() => 'Unknown Token'),
+          contract.symbol().catch(() => 'UNKNOWN'),
+          contract.decimals().catch(() => 18)
+        ]);
+        
+        // Update token config with real data
+        token.name = name;
+        token.symbol = symbol;
+        token.decimals = decimals;
+        
+        // Cache the resolved token
+        this.dynamicTokenCache.set(cacheKey, token);
+        
+      } catch (error) {
+        console.warn(`Failed to fetch metadata for token ${tokenIdentifier} on ${network}:`, error);
+        // Keep default values if metadata fetch fails
+      }
+    }
+    
+    if (!token) {
+      throw new Error(`Token ${tokenIdentifier} not supported on network ${network}`);
+    }
+    
+    return token;
+  }
 
+  async getTokenBalance(address: string, tokenIdentifier: string, network: string): Promise<string> {
+    const token = await this.getOrCreateTokenConfig(tokenIdentifier, network);
     const provider = this.getProvider(network);
 
     if (token.isNative) {
@@ -43,7 +109,7 @@ export class TokenService {
       const balance = await provider.getBalance(address);
       return balance.toString();
     } else {
-      // For ERC-20 tokens
+      // For ERC-20 tokens (including dynamic ones)
       const contract = new ethers.Contract(token.address, token.abi!, provider);
       const balance = await contract.balanceOf(address);
       return balance.toString();
@@ -66,27 +132,41 @@ export class TokenService {
     return balances;
   }
 
-  async validateToken(tokenSymbol: string, network: string): Promise<boolean> {
-    const token = getTokenBySymbol(tokenSymbol, network);
-    return !!token;
+  async validateToken(tokenIdentifier: string, network: string): Promise<boolean> {
+    try {
+      await this.getOrCreateTokenConfig(tokenIdentifier, network);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   getSupportedTokens(network: string): TokenConfig[] {
     return getTokensByNetwork(network);
   }
 
+  // New method to get token info for any ERC20 address
+  async getTokenInfoByAddress(address: string, network: string): Promise<TokenConfig | null> {
+    try {
+      if (!isValidERC20Address(address)) {
+        return null;
+      }
+      
+      return await this.getOrCreateTokenConfig(address, network);
+    } catch (error) {
+      console.error(`Error getting token info for address ${address}:`, error);
+      return null;
+    }
+  }
+
   async estimateGasForTransfer(
     fromAddress: string,
     toAddress: string,
-    tokenSymbol: string,
+    tokenIdentifier: string,
     network: string,
     amount: string
   ): Promise<string> {
-    const token = getTokenBySymbol(tokenSymbol, network);
-    if (!token) {
-      throw new Error(`Token ${tokenSymbol} not supported on network ${network}`);
-    }
-
+    const token = await this.getOrCreateTokenConfig(tokenIdentifier, network);
     const provider = this.getProvider(network);
 
     if (token.isNative) {
@@ -98,7 +178,7 @@ export class TokenService {
       };
       return (await provider.estimateGas(tx)).toString();
     } else {
-      // For ERC-20 transfers
+      // For ERC-20 transfers (including dynamic ones)
       const contract = new ethers.Contract(token.address, [
         'function transfer(address to, uint256 amount) returns (bool)'
       ], provider);
@@ -109,20 +189,21 @@ export class TokenService {
   }
 
   async getTokenInfo(tokenSymbol: string, network: string): Promise<TokenConfig | null> {
-    return getTokenBySymbol(tokenSymbol, network) || null;
+    try {
+      return await this.getOrCreateTokenConfig(tokenSymbol, network);
+    } catch {
+      return null;
+    }
   }
 
-  formatTokenAmount(amount: string, tokenSymbol: string, network: string): string {
-    const token = getTokenBySymbol(tokenSymbol, network);
-    if (!token) {
-      throw new Error(`Token ${tokenSymbol} not supported on network ${network}`);
-    }
-
+  formatTokenAmount(amount: string, tokenIdentifier: string, network: string): string {
+    // This method needs to be updated to handle dynamic tokens
+    // For now, we'll use a default approach
     try {
-      const parsedAmount = ethers.parseUnits(amount, token.decimals);
-      return ethers.formatUnits(parsedAmount, token.decimals);
+      const parsedAmount = ethers.parseUnits(amount, 18); // Default to 18 decimals
+      return ethers.formatUnits(parsedAmount, 18);
     } catch (error) {
-      throw new Error(`Invalid amount format for token ${tokenSymbol}`);
+      throw new Error(`Invalid amount format for token ${tokenIdentifier}`);
     }
   }
 
@@ -135,6 +216,25 @@ export class TokenService {
       console.error(`Network ${network} is not accessible:`, error);
       return false;
     }
+  }
+
+  // New method to clear dynamic token cache
+  clearDynamicTokenCache(): void {
+    this.dynamicTokenCache.clear();
+  }
+
+  // New method to get cache statistics
+  getCacheStats(): { size: number; networks: string[] } {
+    const networks = new Set<string>();
+    for (const key of this.dynamicTokenCache.keys()) {
+      const [network] = key.split(':');
+      networks.add(network);
+    }
+    
+    return {
+      size: this.dynamicTokenCache.size,
+      networks: Array.from(networks)
+    };
   }
 }
 

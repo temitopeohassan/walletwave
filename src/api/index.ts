@@ -30,6 +30,9 @@ import {
   getTokenInfo,
   getNetworkStatus,
   estimateGas,
+  getTokenInfoByAddress,
+  clearTokenCache,
+  getCacheStats,
 } from '../routes/handlers/tokenHandlers';
 
 // Load environment variables
@@ -64,6 +67,11 @@ app.get('/tokens/:network/:symbol', getTokenInfo);
 app.get('/network/:network/status', getNetworkStatus);
 app.post('/estimate-gas', estimateGas);
 
+// New dynamic token discovery routes
+app.get('/tokens/:network/address/:address', getTokenInfoByAddress);
+app.post('/tokens/cache/clear', clearTokenCache);
+app.get('/tokens/cache/stats', getCacheStats);
+
 // Local dev server
 if (process.env.NODE_ENV !== 'production') {
   const PORT = process.env.PORT || 3000;
@@ -73,5 +81,5 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Serverless handler export for Vercel
-module.exports = app;
+export default serverless(app);
 

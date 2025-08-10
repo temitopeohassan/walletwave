@@ -6,6 +6,7 @@ export interface TokenConfig {
   network: 'base' | 'base-sepolia' | 'ethereum-sepolia';
   isNative?: boolean;
   abi?: string[];
+  isDynamic?: boolean; // Indicates if this is a dynamically detected token
 }
 
 export const TOKENS: Record<string, TokenConfig> = {
@@ -136,6 +137,42 @@ export const TOKENS: Record<string, TokenConfig> = {
   }
 };
 
+// Standard ERC20 ABI for dynamic token detection
+export const ERC20_ABI = [
+  'function name() view returns (string)',
+  'function symbol() view returns (string)',
+  'function decimals() view returns (uint8)',
+  'function totalSupply() view returns (uint256)',
+  'function balanceOf(address) view returns (uint256)',
+  'function transfer(address to, uint256 amount) returns (bool)',
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function transferFrom(address from, address to, uint256 amount) returns (bool)',
+  'event Transfer(address indexed from, address indexed to, uint256 amount)',
+  'event Approval(address indexed owner, address indexed spender, uint256 amount)'
+];
+
+// Function to create a dynamic token config for any ERC20 address
+export const createDynamicTokenConfig = (
+  address: string, 
+  network: 'base' | 'base-sepolia'
+): TokenConfig => {
+  return {
+    symbol: 'UNKNOWN',
+    name: 'Unknown Token',
+    address: address.toLowerCase(),
+    decimals: 18, // Default to 18, will be updated when fetched
+    network: network,
+    abi: ERC20_ABI,
+    isDynamic: true
+  };
+};
+
+// Function to check if an address is a valid ERC20 token
+export const isValidERC20Address = (address: string): boolean => {
+  return /^0x[a-fA-F0-9]{40}$/.test(address);
+};
+
 export const getTokensByNetwork = (network: string): TokenConfig[] => {
   return Object.values(TOKENS).filter(token => token.network === network);
 };
@@ -146,6 +183,15 @@ export const getTokenBySymbol = (symbol: string, network?: string): TokenConfig 
     : Object.values(TOKENS);
   
   return tokens.find(token => token.symbol === symbol);
+};
+
+export const getTokenByAddress = (address: string, network?: string): TokenConfig | undefined => {
+  const normalizedAddress = address.toLowerCase();
+  const tokens = network 
+    ? Object.values(TOKENS).filter(token => token.network === network)
+    : Object.values(TOKENS);
+  
+  return tokens.find(token => token.address.toLowerCase() === normalizedAddress);
 };
 
 export const getNativeToken = (network: string): TokenConfig | undefined => {
