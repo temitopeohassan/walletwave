@@ -9,7 +9,9 @@
   "scripts": {
     "start": "node dist/api/index.js",
     "dev": "ts-node-dev --respawn src/api/index.ts",  
-    "build": "tsc && shx mkdir -p api && shx cp dist/api/index.js api/index.js && shx cp -r dist/config api/config && shx cp -r dist/routes api/routes"
+    "build": "tsc && shx mkdir -p api && shx cp dist/api/index.js api/index.js && shx cp -r dist/config api/config && shx cp -r dist/routes api/routes && shx cp -r dist/middleware api/middleware && shx cp -r dist/models api/models",
+    "create-admin-key": "ts-node scripts/create-admin-key.ts",
+    "test-auth": "ts-node scripts/test-auth.ts"
   },
   "repository": {
     "type": "git",

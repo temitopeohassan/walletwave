@@ -37,3 +37,5 @@ next-env.d.ts
 
 /context
 
+API_AUTHENTICATION.md
+.env.example
